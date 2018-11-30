@@ -204,54 +204,41 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget --no-check-certificate https://bootstrap.pypa.io/get-pip.py   ;fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo -H $PYTHON_BINARY ./get-pip.py ;fi
 
-  # Prepare build
-  - mkdir build
-  - cd build
-
-
 script:
-  - >
-    cmake
-    -DCMAKE_C_COMPILER=$C_COMPILER
-    -DCMAKE_CXX_COMPILER=$CXX_COMPILER
-    -DPYTHON_VERSION=$PYTHON_VERSION
-    -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR
-    -DPYTHON_LIBRARY=$PYTHON_LIBRARY
-    -DPYTHON_EXECUTABLE=$PYTHON_BINARY
-    -DLIEF_TESTS=on
-    -DLIEF_PYTHON_API=on
-    -DLIEF_EXAMPLES=on
-    ..
-  - make -j3 lief_samples
-  - cmake ..
-  - make -j3 all
-  - make -j3 check-lief
+  - export CC=$C_COMPILER
+  - export CXX=$CXX_COMPILER
 
-after_success:
-  - make package
   - sudo $PYTHON_BINARY -m pip install setuptools
-  - sudo $PYTHON_BINARY -m pip install requests
+  - sudo $PYTHON_BINARY -m pip install wheel
   - sudo $PYTHON_BINARY -m pip install --upgrade setuptools
-  - cd api/python
-  - $PYTHON_BINARY setup.py bdist_egg
-  - if [[ -z "$TRAVIS_TAG" ]]; then $PYTHON_BINARY setup.py sdist --dev --formats=zip ;fi
-  - if [[ -n "$TRAVIS_TAG" ]]; then $PYTHON_BINARY setup.py sdist --formats=zip       ;fi
-  - cd $TRAVIS_BUILD_DIR
-  - bash ./.github/deploy.sh
-  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$PYTHON_VERSION" == "3.6" ]]; then $PYTHON_BINARY ./.github/trigger_docker.py ;fi
+  - sudo $PYTHON_BINARY -m pip install --upgrade pip
+  - $PYTHON_BINARY ./setup.py --lief-test bdist_wheel
+
+#after_success:
+#  - make package
+#  - sudo $PYTHON_BINARY -m pip install setuptools
+#  - sudo $PYTHON_BINARY -m pip install wheel
+#  - sudo $PYTHON_BINARY -m pip install --upgrade setuptools
+#  - cd api/python
+#  - $PYTHON_BINARY setup.py bdist_egg
+#  - if [[ -z "$TRAVIS_TAG" ]]; then $PYTHON_BINARY setup.py sdist --dev --formats=zip ;fi
+#  - if [[ -n "$TRAVIS_TAG" ]]; then $PYTHON_BINARY setup.py sdist --formats=zip       ;fi
+#  - cd $TRAVIS_BUILD_DIR
+#  - bash ./.github/deploy.sh
+#  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$PYTHON_VERSION" == "3.6" ]]; then $PYTHON_BINARY ./.github/trigger_docker.py ;fi
 
 
-deploy:
-  provider: releases
-  api_key:
-    - secure: "RlyaagAWt1BrcOBDSpmOnP+/FYUJqQiURlWw7JWvuBBWBDPBta+WI1zZvH6x5H+1bm8F77LrGdU1mRES/MAlhzb8o/VHgOAFhu2si/A+A7Xa9fAIOQw12jcGbtZQUQ7HCkRfa5VGrW4IlMI5+FJ7uFUU2lLoWOsA3u8pLEwApbdiB/LmtEY+kKhXzX0bT3h9cZATDWTeEoopXOseaBmTFC9IUATE3Ht1wVP49wXRUZHNJA10PJILbKtR1OITCAKm0iu1rVdLhoMzqH3T2dXDZ5ykF9TuYQaXJzKMFHaAeSe135JYOiIEWUUiif80q/mTWXiJAQ6gQXXOyDVu6R0Hi03TKsWXPlEKDBpDCRDu58I2hJyxsc5MPbFg8IAjraXkOLIQkIpgBOfV0JYVihikOLTfbCBKO+w9RFwrEVy91YsKCDosEAUa9p5nyRoV+k9Epmr/2atlHY8z7RyycB2fNQv3/NkHX8jZesiUFUwu5SHaZD76mKGELEZlf7LW8XwL4Cwfa2OB2vsKFcN1qyGUmXS57MODVBAUubQY4oTFwFJJUv28s06KA6BfZE4QqAeWoRSslDr9ORLUlsHHoCpZrAAY0uyl8kff/jL8IJMd8qng9bBTLu8hiK0yyQWKkebMvMWXhvAjssXeqWt3OeL2mssbUG5N1pXt6eHFmQvxqzs="
-  file_glob: true
-  file:
-    - ${TRAVIS_BUILD_DIR}/build/api/python/dist/*.egg
-    - ${TRAVIS_BUILD_DIR}/build/api/python/dist/*.zip
-    - ${TRAVIS_BUILD_DIR}/build/*.tar.gz
-  skip_cleanup: true
-  on:
-    #branch: master
-    tags: true
+#deploy:
+#  provider: releases
+#  api_key:
+#    - secure: "RlyaagAWt1BrcOBDSpmOnP+/FYUJqQiURlWw7JWvuBBWBDPBta+WI1zZvH6x5H+1bm8F77LrGdU1mRES/MAlhzb8o/VHgOAFhu2si/A+A7Xa9fAIOQw12jcGbtZQUQ7HCkRfa5VGrW4IlMI5+FJ7uFUU2lLoWOsA3u8pLEwApbdiB/LmtEY+kKhXzX0bT3h9cZATDWTeEoopXOseaBmTFC9IUATE3Ht1wVP49wXRUZHNJA10PJILbKtR1OITCAKm0iu1rVdLhoMzqH3T2dXDZ5ykF9TuYQaXJzKMFHaAeSe135JYOiIEWUUiif80q/mTWXiJAQ6gQXXOyDVu6R0Hi03TKsWXPlEKDBpDCRDu58I2hJyxsc5MPbFg8IAjraXkOLIQkIpgBOfV0JYVihikOLTfbCBKO+w9RFwrEVy91YsKCDosEAUa9p5nyRoV+k9Epmr/2atlHY8z7RyycB2fNQv3/NkHX8jZesiUFUwu5SHaZD76mKGELEZlf7LW8XwL4Cwfa2OB2vsKFcN1qyGUmXS57MODVBAUubQY4oTFwFJJUv28s06KA6BfZE4QqAeWoRSslDr9ORLUlsHHoCpZrAAY0uyl8kff/jL8IJMd8qng9bBTLu8hiK0yyQWKkebMvMWXhvAjssXeqWt3OeL2mssbUG5N1pXt6eHFmQvxqzs="
+#  file_glob: true
+#  file:
+#    - ${TRAVIS_BUILD_DIR}/build/api/python/dist/*.egg
+#    - ${TRAVIS_BUILD_DIR}/build/api/python/dist/*.zip
+#    - ${TRAVIS_BUILD_DIR}/build/*.tar.gz
+#  skip_cleanup: true
+#  on:
+#    #branch: master
+#    tags: true
 
