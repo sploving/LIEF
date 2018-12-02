@@ -17,7 +17,7 @@ from distutils.version import LooseVersion
 MIN_SETUPTOOLS_VERSION = "31.0.0"
 assert (LooseVersion(setuptools.__version__) >= LooseVersion(MIN_SETUPTOOLS_VERSION)), "LIEF requires a setuptools version '{}' or higher (pip install setuptools --upgrade)".format(MIN_SETUPTOOLS_VERSION)
 
-CURRENT_DIR  = pathlib.Path(__file__).parent
+CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PACKAGE_NAME = "lief"
 
 class LiefDistribution(setuptools.Distribution):
@@ -175,15 +175,15 @@ def check_if_tagged():
     return output != ""
 
 def get_pkg_info_version(pkg_info_file):
-    dist_info = Distribution.from_filename(CURRENT_DIR / "{}.egg-info".format(PACKAGE_NAME))
+    dist_info = Distribution.from_filename(os.path.join(CURRENT_DIR, "{}.egg-info".format(PACKAGE_NAME)))
     pkg = get_distribution('lief')
     return pkg.version
 
 
 def get_version():
     version   = "0.0.0"
-    pkg_info  = CURRENT_DIR / "{}.egg-info".format(PACKAGE_NAME) / "PKG-INFO"
-    git_dir   = CURRENT_DIR / ".git"
+    pkg_info  = os.path.join(CURRENT_DIR, "{}.egg-info".format(PACKAGE_NAME), "PKG-INFO")
+    git_dir   = os.path.join(CURRENT_DIR, ".git")
     if git_dir.is_dir():
         is_tagged = False
         try:
