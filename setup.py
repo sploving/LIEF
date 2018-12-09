@@ -93,7 +93,7 @@ class BuildLibrary(build_ext):
         if platform.system() == "Windows":
             cmake_args += [
                 '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), cmake_library_output_directory),
-                '-DLIEF_USE_CRT_{}=MT'.format(cfg.upper()),
+                '-DLIEF_USE_CRT_RELEASE=MT',
             ]
             cmake_args += ['-A', 'x64'] if is64 else ['-A', 'x86']
 
@@ -121,6 +121,7 @@ class BuildLibrary(build_ext):
 
         # 1. Configure
         configure_cmd = ['cmake', ext.sourcedir] + cmake_args
+        log.info(" ".join(configure_cmd))
         subprocess.check_call(configure_cmd, cwd=self.build_temp, env=env)
 
         # 2. Build
