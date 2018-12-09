@@ -82,6 +82,7 @@ class BuildLibrary(build_ext):
         cmake_args = [
             '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(cmake_library_output_directory),
             '-DPYTHON_EXECUTABLE={}'.format(sys.executable),
+            '-DLIEF_PYTHON_API=on',
         ]
 
         if self.distribution.lief_test:
@@ -90,10 +91,20 @@ class BuildLibrary(build_ext):
         build_args = ['--config', cfg]
 
         if platform.system() == "Windows":
-            cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), cmake_library_output_directory)]
-            cmake_args += ['-DLIEF_USE_CRT_RELEASE=MT']
+            cmake_args += [
+                '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), cmake_library_output_directory),
+                '-DLIEF_USE_CRT_{}=MT'.format(cfg.upper()),
+            ]
             cmake_args += ['-A', 'x64'] if is64 else ['-A', 'x86']
-            build_args += ['--', '/m']
+
+            # Specific to appveyor
+            if os.getenv("APPVEYOR", False):
+                build_args += ['--', '/v:m']
+                logger = os.getenv("MSBuildLogger", None)
+                if logger:
+                    build_args += ['/logger:{}'.format(logger)]
+            else:
+                build_args += ['--', '/m']
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE={}'.format(cfg)]
 
@@ -115,7 +126,14 @@ class BuildLibrary(build_ext):
         # 2. Build
         binding_target = "pyLIEF"
         if platform.system() == "Windows":
-            subprocess.check_call(['cmake', '--build', '.', '--target', binding_target] + build_args, cwd=self.build_temp)
+
+            if self.distribution.lief_test:
+                subprocess.check_call(['cmake', '--build', '.', '--target', "lief_samples"] + build_args, cwd=self.build_temp)
+                subprocess.check_call(configure_cmd, cwd=self.build_temp, env=env)
+                subprocess.check_call(['cmake', '--build', '.', '--target', "ALL_BUILD"] + build_args, cwd=self.build_temp)
+                subprocess.check_call(['cmake', '--build', '.', '--target', "check-lief"] + build_args, cwd=self.build_temp)
+            else:
+                subprocess.check_call(['cmake', '--build', '.', '--target', binding_target] + build_args, cwd=self.build_temp)
         else:
             if build_with_ninja:
                 if self.distribution.lief_test:
@@ -128,23 +146,23 @@ class BuildLibrary(build_ext):
             else:
                 log.info("Using {} jobs".format(jobs))
                 if self.distribution.lief_test:
-                    subprocess.check_call(['make', '-j{}'.format(jobs), "lief_samples"], cwd=self.build_temp)
+                    subprocess.check_call(['make', '-j', str(jobs), "lief_samples"], cwd=self.build_temp)
                     subprocess.check_call(configure_cmd, cwd=self.build_temp)
-                    subprocess.check_call(['make', '-j{}'.format(jobs), "all"], cwd=self.build_temp)
-                    subprocess.check_call(['make', '-j{}'.format(jobs), "check-lief"], cwd=self.build_temp)
+                    subprocess.check_call(['make', '-j', str(jobs), "all"], cwd=self.build_temp)
+                    subprocess.check_call(['make', '-j', str(jobs), "check-lief"], cwd=self.build_temp)
                 else:
-                    subprocess.check_call(['make', '-j{}'.format(jobs), binding_target], cwd=self.build_temp)
+                    subprocess.check_call(['make', '-j', str(jobs), binding_target], cwd=self.build_temp)
 
-        pycosmiq_dst  = os.path.join(self.build_lib, self.get_ext_filename(self.get_ext_fullname(ext.name)))
+        pylief_dst  = os.path.join(self.build_lib, self.get_ext_filename(self.get_ext_fullname(ext.name)))
 
-        libsuffix = pycosmiq_dst.split(".")[-1]
+        libsuffix = pylief_dst.split(".")[-1]
 
-        pycosmiq_path = os.path.join(cmake_library_output_directory, "{}.{}".format(PACKAGE_NAME, libsuffix))
+        pylief_path = os.path.join(cmake_library_output_directory, "{}.{}".format(PACKAGE_NAME, libsuffix))
         if not os.path.exists(self.build_lib):
             os.makedirs(self.build_lib)
 
         copy_file(
-                pycosmiq_path, pycosmiq_dst, verbose=self.verbose,
+                pylief_path, pylief_dst, verbose=self.verbose,
                 dry_run=self.dry_run)
 
 

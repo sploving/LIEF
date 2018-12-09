@@ -212,7 +212,7 @@ script:
   - sudo $PYTHON_BINARY -m pip install wheel
   - sudo $PYTHON_BINARY -m pip install --upgrade setuptools
   - sudo $PYTHON_BINARY -m pip install --upgrade pip
-  - $PYTHON_BINARY ./setup.py --lief-test bdist_wheel
+  - $PYTHON_BINARY ./setup.py --lief-test build -j8 bdist_wheel
 
 #after_success:
 #  - make package
