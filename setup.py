@@ -128,14 +128,16 @@ class BuildLibrary(build_ext):
         # 2. Build
         binding_target = "pyLIEF"
         if platform.system() == "Windows":
+            build_cmd = ['cmake', '--build', '.', '--target', "lief_samples"] + build_args
+            log.info(" ".join(build_cmd))
 
             if self.distribution.lief_test:
-                subprocess.check_call(['cmake', '--build', '.', '--target', "lief_samples"] + build_args, cwd=self.build_temp)
+                subprocess.check_call(['cmake', '--build', '.', '--target', "lief_samples"] + build_args, cwd=self.build_temp, env=env)
                 subprocess.check_call(configure_cmd, cwd=self.build_temp, env=env)
-                subprocess.check_call(['cmake', '--build', '.', '--target', "ALL_BUILD"] + build_args, cwd=self.build_temp)
-                subprocess.check_call(['cmake', '--build', '.', '--target', "check-lief"] + build_args, cwd=self.build_temp)
+                subprocess.check_call(['cmake', '--build', '.', '--target', "ALL_BUILD"] + build_args, cwd=self.build_temp, env=env)
+                subprocess.check_call(['cmake', '--build', '.', '--target', "check-lief"] + build_args, cwd=self.build_temp, env=env)
             else:
-                subprocess.check_call(['cmake', '--build', '.', '--target', binding_target] + build_args, cwd=self.build_temp)
+                subprocess.check_call(['cmake', '--build', '.', '--target', binding_target] + build_args, cwd=self.build_temp, env=env)
         else:
             if build_with_ninja:
                 if self.distribution.lief_test:
