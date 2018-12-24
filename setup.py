@@ -92,6 +92,7 @@ class BuildLibrary(build_ext):
 
         if platform.system() == "Windows":
             cmake_args += [
+                '-DCMAKE_BUILD_TYPE={}'.format(cfg),
                 '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), cmake_library_output_directory),
                 '-DLIEF_USE_CRT_RELEASE=MT',
             ]
