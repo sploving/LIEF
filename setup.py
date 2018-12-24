@@ -99,13 +99,13 @@ class BuildLibrary(build_ext):
             cmake_args += ['-A', 'x64'] if is64 else []
 
             # Specific to appveyor
-            if os.getenv("APPVEYOR", False):
-                build_args += ['--', '/v:m']
-                logger = os.getenv("MSBuildLogger", None)
-                if logger:
-                    build_args += ['/logger:{}'.format(logger)]
-            else:
-                build_args += ['--', '/m']
+            #if os.getenv("APPVEYOR", False):
+            #    build_args += ['--', '/v:m']
+            #    logger = os.getenv("MSBuildLogger", None)
+            #    if logger:
+            #        build_args += ['/logger:{}'.format(logger)]
+            #else:
+            build_args += ['--', '/m']
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE={}'.format(cfg)]
 
