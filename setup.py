@@ -96,7 +96,7 @@ class BuildLibrary(build_ext):
                 '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), cmake_library_output_directory),
                 '-DLIEF_USE_CRT_RELEASE=MT',
             ]
-            cmake_args += ['-A', 'x64'] if is64 else ['-A', 'x86']
+            cmake_args += ['-A', 'x64'] if is64 else []
 
             # Specific to appveyor
             if os.getenv("APPVEYOR", False):
