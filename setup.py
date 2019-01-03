@@ -163,7 +163,7 @@ class BuildLibrary(build_ext):
 
         pylief_path = os.path.join(cmake_library_output_directory, "{}.{}".format(PACKAGE_NAME, libsuffix))
         if platform.system() == "Windows":
-            pylief_path = os.path.join(cmake_library_output_directory, "Release", "{}.{}".format(PACKAGE_NAME, libsuffix))
+            pylief_path = os.path.join(cmake_library_output_directory, "release", "{}.{}".format(PACKAGE_NAME, libsuffix))
         if not os.path.exists(self.build_lib):
             os.makedirs(self.build_lib)
 
