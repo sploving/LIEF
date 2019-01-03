@@ -162,9 +162,12 @@ class BuildLibrary(build_ext):
         libsuffix = pylief_dst.split(".")[-1]
 
         pylief_path = os.path.join(cmake_library_output_directory, "{}.{}".format(PACKAGE_NAME, libsuffix))
+        if platform.system() == "Windows":
+            pylief_path = os.path.join(cmake_library_output_directory, "Release", "{}.{}".format(PACKAGE_NAME, libsuffix))
         if not os.path.exists(self.build_lib):
             os.makedirs(self.build_lib)
 
+        log.info("Copying {} into {}".format(pylief_path, pylief_dst))
         copy_file(
                 pylief_path, pylief_dst, verbose=self.verbose,
                 dry_run=self.dry_run)
