@@ -864,5 +864,34 @@ std::unique_ptr<Binary> Parser::parse(const std::vector<uint8_t>& data, const st
   return std::unique_ptr<Binary>{parser.binary_};
 }
 
+bool Parser::is_valid_import_name(const std::string& name) {
+  static constexpr unsigned MIN_IMPORT_NAME_SIZE = 3;
+  if (name.size() < MIN_IMPORT_NAME_SIZE) {
+    return false;
+  }
+
+  if (not std::all_of(std::begin(name), std::end(name),
+          std::bind(std::isprint<char>, std::placeholders::_1, std::locale("C"))))
+  {
+    return false;
+  }
+  return true;
+}
+
+
+bool Parser::is_valid_dll_name(const std::string& name) {
+  if (name.size() < MIN_DLL_NAME_SIZE) {
+    return false;
+  }
+
+  if (not std::all_of(std::begin(name), std::end(name),
+          std::bind(std::isprint<char>, std::placeholders::_1, std::locale("C"))))
+  {
+    return false;
+  }
+
+  return true;
+}
+
 }
 }
